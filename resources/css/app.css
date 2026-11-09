@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design system (spec §5): elder-friendly 17px root, warm contrast. */
+:root {
+    font-size: 17px;
+    --surface: hsl(44 43% 96.5%);
+    --forest: hsl(145 48% 26%);
+    --mango: hsl(26 88% 56%);
+}
+
+body {
+    background-color: hsl(44 43% 96.5%);
+    color: hsl(150 18% 14%);
+    font-feature-settings: 'tnum' 1;
+}
+
+/* Standard form control: 44px tall, rounded, bordered, focus ring. */
+.input {
+    @apply flex h-11 w-full rounded-xl border border-warm bg-white px-3 text-[15px] text-forest-dark placeholder-stone-400 outline-none transition-colors duration-150 focus:border-forest focus:ring-2 focus:ring-forest/30;
+}
+
+select.input {
+    @apply appearance-none pr-8 bg-no-repeat bg-right;
+    background-image: none;
+}
+
+.chip {
+    @apply inline-flex min-w-max items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150 border;
+}
+
+.chip-active {
+    @apply bg-forest text-white border-forest;
+}
+
+.chip-idle {
+    @apply bg-white text-forest-dark border-warm hover:border-forest/60;
+}
+
+/* Sustainable focus rings everywhere (offset for warm background). */
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(26 88% 56% / 0.55), 0 0 0 4px hsla(145, 48%, 26%, 0.35);
+}
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .tap-target { min-height: 44px; min-width: 44px; }
+    .text-peso { @apply font-bold tabular-nums; }
+}
+
+@media print {
+    .print-hide { display: none !important; }
+}
