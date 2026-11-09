@@ -68,6 +68,12 @@ Open your browser and visit:
 
 ---
 
+## System Details
+
+For an overview of features, database structure, technologies used, and architecture, see [SYSTEM_DETAILS.md](SYSTEM_DETAILS.md).
+
+---
+
 ## Helpful Commands
 
 | Action | Command |
