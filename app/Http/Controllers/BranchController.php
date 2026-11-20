@@ -49,13 +49,13 @@ class BranchController extends Controller
     {
         $business = $request->user()->business;
         if ($business->plan !== 'premium') {
-            return redirect()->to('/branches')->with('error', 'Premium feature.');
+            return redirect()->to('/branches')->with('error', __('Premium feature.'));
         }
 
         $data = $this->validated($request);
         $business->branches()->create($data + ['location' => $this->composeLocation($data)]);
 
-        return redirect()->to('/branches')->with('success', 'Branch added — restored in every dropdown.');
+        return redirect()->to('/branches')->with('success', __('Branch added — restored in every dropdown.'));
     }
 
     public function update(Request $request, $branchId)
@@ -66,7 +66,7 @@ class BranchController extends Controller
         $data = $this->validated($request, $branch->name === 'Main');
         $branch->update($data + ['location' => $this->composeLocation($data)]);
 
-        return redirect()->to('/branches')->with('success', "Na-update ang {$branch->name}.");
+        return redirect()->to('/branches')->with('success', __('Branch :name updated.', ['name' => $branch->name]));
     }
 
     public function destroy(Request $request, $branchId)
@@ -76,13 +76,13 @@ class BranchController extends Controller
 
         $mainName = $business->branches()->orderBy('created_at')->first()->name;
         if ($branch->name === $mainName) {
-            return redirect()->to('/branches')->with('error', "Cannot delete $mainName branch.");
+            return redirect()->to('/branches')->with('error', __('Cannot delete the :name branch.', ['name' => $mainName]));
         }
 
         // Deactivation never touches historical records; delete is soft via is_active.
         $branch->update(['is_active' => false]);
 
-        return redirect()->to('/branches')->with('success', "Na-deactivate ang {$branch->name}.");
+        return redirect()->to('/branches')->with('success', __('Branch :name deactivated.', ['name' => $branch->name]));
     }
 
     private function validated(Request $request, bool $main = false): array

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Business;
-use App\Services\SampleDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -29,7 +28,6 @@ class OnboardingController extends Controller
             'multiBranch' => 'boolean',
             'extraBranches' => 'array|max:5',
             'extraBranches.*' => 'nullable|string|max:120',
-            'withSample' => 'boolean',
         ]);
 
         $user = $request->user();
@@ -46,7 +44,7 @@ class OnboardingController extends Controller
                 'default_reminder_tone' => 'gentle',
                 'auto_remind' => false,
                 'low_stock_threshold' => 5,
-                'language' => 'taglish',
+                'language' => 'english',
             ]);
 
             $branches = collect([['name' => 'Main', 'location' => $data['location']]]);
@@ -57,10 +55,6 @@ class OnboardingController extends Controller
             }
 
             $business->branches()->createMany($branches->all());
-
-            if (! empty($data['withSample'])) {
-                app(SampleDataService::class)->load($business);
-            }
 
             return $business;
         });

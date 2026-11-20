@@ -10,7 +10,6 @@ use App\Support\Period;
 use App\Support\Photo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 /**
@@ -61,6 +60,7 @@ class SaleController extends Controller
             'products' => $products->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
+                'category' => $p->category,
                 'quantity' => $p->quantity,
                 'unit' => $p->unit,
                 'selling_price' => $p->selling_price,
@@ -72,6 +72,14 @@ class SaleController extends Controller
                 'id' => $c->id, 'name' => $c->name, 'phone' => $c->phone,
             ]),
             'filters' => ['range' => $range, 'payment' => $payment ?: 'all'],
+            'methods' => tap($business)->ensurePaymentMethods()
+                ->paymentMethods()->where('is_active', true)->get()->map(fn ($m) => [
+                    'code' => $m->code,
+                    'label' => $m->label,
+                    'account_name' => $m->account_name,
+                    'account_number' => $m->account_number,
+                    'qr_url' => Photo::signedUrl($m->qr_path, 30),
+                ]),
         ]);
     }
 
@@ -79,12 +87,13 @@ class SaleController extends Controller
     public function store(Request $request)
     {
         $business = $request->user()->business;
+        $business->ensurePaymentMethods();
 
         $rules = [
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer',
             'items.*.quantity' => 'required|numeric|min:1',
-            'payment_type' => 'required|in:cash,gcash,maya,utang',
+            'payment_type' => 'required|string|max:40', // method code or 'utang'
             'customer_id' => 'nullable|integer',
             'new_customer.name' => 'nullable|string|max:120',
             'new_customer.phone' => 'nullable|string|max:40',
@@ -93,9 +102,15 @@ class SaleController extends Controller
             'note' => 'nullable|string|max:500',
         ];
         $data = $request->validate($rules);
+
+        // payment_type must be an active payment method, or 'utang' (debt record).
         if ($data['payment_type'] === 'utang') {
-            $rules['customer_id'] = Rule::requiredIf(empty($data['new_customer']['name'] ?? null)).'|integer';
-            $data = $request->validate($rules);
+            // A debt always needs a customer: existing id or a new name.
+            if (empty($data['customer_id']) && empty($data['new_customer']['name'] ?? null)) {
+                return back()->with('error', __('A customer is required for utang.'));
+            }
+        } elseif (! $business->paymentMethods()->where('code', $data['payment_type'])->where('is_active', true)->exists()) {
+            return back()->with('error', __('Invalid payment method.'));
         }
 
         [, $fallback] = Period::branch($business, null);
@@ -111,16 +126,15 @@ class SaleController extends Controller
                     ->get()->keyBy('id');
 
                 if (count($products) !== count(collect($data['items'])->pluck('product_id')->unique())) {
-                    throw new \InvalidArgumentException('Some items no longer exist. Ibalik lang ang mga ito sa cart.');
+                    throw new \InvalidArgumentException(__('Some items no longer exist. Put them back in the cart.'));
                 }
 
                 foreach ($data['items'] as $line) {
                     $product = $products[$line['product_id']];
                     if ($line['quantity'] > $product->quantity) {
-                        throw new \InvalidArgumentException(sprintf(
-                            'Kulang ang stock — %s: %s %s na lang ang natitira',
-                            $product->name, $product->quantity, $product->unit
-                        ));
+                        throw new \InvalidArgumentException(__('Not enough stock — :name: :qty :unit left', [
+                            'name' => $product->name, 'qty' => $product->quantity, 'unit' => $product->unit,
+                        ]));
                     }
                 }
 
@@ -150,7 +164,7 @@ class SaleController extends Controller
                     : null);
 
                 if ($data['payment_type'] === 'utang' && ! $customerId) {
-                    throw new \InvalidArgumentException('Utang needs an existing customer or a new customer name.');
+                    throw new \InvalidArgumentException(__('Utang needs an existing customer or a new customer name.'));
                 }
 
                 $customer = $customerId ? $business->customers()->find($customerId) : null;
@@ -211,7 +225,7 @@ class SaleController extends Controller
 
         $label = Payment::label($sale->payment_type);
 
-        return redirect()->to('/sales')->with('success', sprintf('Naitala na ang benta! %s · ₱%s', $label, number_format($sale->total, 2)));
+        return redirect()->to('/sales')->with('success', __('Sale recorded! :label · ₱:total', ['label' => $label, 'total' => number_format($sale->total, 2)]));
     }
 
     /** Section 7.8: void sale, restore stock, write void movements. */
@@ -220,7 +234,7 @@ class SaleController extends Controller
         $business = $request->user()->business;
         $sale = $business->sales()->where('status', 'active')->find($saleId);
         if (! $sale) {
-            return back()->with('error', 'Sale not found or already voided.');
+            return back()->with('error', __('Sale not found or already voided.'));
         }
 
         DB::transaction(function () use ($sale, $business) {
@@ -240,9 +254,11 @@ class SaleController extends Controller
                     ]);
                 }
             }
+            // A voided utang sale is no longer debt — remove its ledger entry.
+            $business->utangEntries()->where('sale_id', $sale->id)->delete();
             $sale->update(['status' => 'void']);
         });
 
-        return back()->with('success', 'Voided the sale. Stock has returned.');
+        return back()->with('success', __('Sale voided. Stock has returned.'));
     }
 }

@@ -73,4 +73,23 @@ class Business extends Model
     {
         return $this->hasMany(ChatMessage::class);
     }
+
+    public function paymentMethods()
+    {
+        return $this->hasMany(PaymentMethod::class)->orderBy('sort');
+    }
+
+    /** Ensure the default paid-methods exist (idempotent). Utang is a debt record, not a method. */
+    public function ensurePaymentMethods(): void
+    {
+        $defaults = [
+            ['code' => 'cash', 'label' => 'Cash', 'sort' => 1],
+            ['code' => 'gcash', 'label' => 'GCash', 'sort' => 2],
+            ['code' => 'maya', 'label' => 'Maya', 'sort' => 3],
+        ];
+
+        foreach ($defaults as $d) {
+            $this->paymentMethods()->firstOrCreate(['code' => $d['code']], $d);
+        }
+    }
 }

@@ -6,6 +6,7 @@ use App\Services\SalesAnalyticsService;
 use App\Support\Payment;
 use App\Support\Period;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Reports (§8.9) + CSV export. Range chips: today / week / month. */

@@ -1,24 +1,27 @@
 <script setup>
 /** More (§8.15): menu of secondary destinations. */
+import { ref } from 'vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import { ReceiptText, BarChart3, CalendarDays, Building2, Sparkles, CreditCard, Settings as SettingsIcon, LogOut } from 'lucide-vue-next'
+import { t } from '@/lib/i18n'
 
 const business = usePage().props.business
 const isPremium = business?.plan === 'premium'
+const loggingOut = ref(false)
 
 const items = [
-  { label: 'Gastos', href: route('expenses.index'), icon: ReceiptText },
+  { label: 'Expenses', href: route('expenses.index'), icon: ReceiptText },
   { label: 'Reports', href: route('reports.index'), icon: BarChart3 },
   { label: 'Daily Summary', href: route('daily.index'), icon: CalendarDays },
   { label: 'Branches', href: route('branches.index'), icon: Building2, premium: true },
-  { label: 'Tanong kay CashIko', href: route('assistant.index'), icon: Sparkles, premium: true },
+  { label: 'Ask CashIko', href: route('assistant.index'), icon: Sparkles, premium: true },
   { label: 'Pricing / Upgrade', href: route('pricing.index'), icon: CreditCard },
   { label: 'Settings', href: route('settings.index'), icon: SettingsIcon },
 ]
 </script>
 
 <template>
-  <Head title="Higit pa" />
+  <Head :title="t('More')" />
   <AppLayout>
     <div class="md:max-w-2xl mx-auto pb-8 space-y-4">
       <section class="flex items-center gap-3 rounded-2xl bg-forest px-5 py-5 text-white shadow-cardlg">
@@ -42,17 +45,17 @@ const items = [
           @click.prevent="router.visit(item.href)"
         >
           <span class="grid h-9 w-9 place-items-center rounded-xl bg-forest/10 text-forest"><component :is="item.icon" class="h-4.5 w-4.5" /></span>
-          <span class="flex-1">{{ item.label }}</span>
+          <span class="flex-1">{{ t(item.label) }}</span>
           <span v-if="item.premium && !isPremium" class="rounded-full bg-mango/15 px-2 py-0.5 text-[9px] font-extrabold uppercase text-mango">PREMIUM</span>
           <span class="text-stone-300">›</span>
         </component>
       </section>
 
-      <button class="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-red-200 font-semibold text-red-600 hover:bg-red-50" @click="router.post(route('logout'))">
-        <LogOut class="h-4 w-4" /> Log out
+      <button class="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-red-200 font-semibold text-red-600 hover:bg-red-50 disabled:opacity-40" :disabled="loggingOut" @click="loggingOut = true; router.post(route('logout'), undefined, { onFinish: () => (loggingOut = false) })">
+        <LogOut class="h-4 w-4" /> {{ loggingOut ? t('Logging out…') : t('Log out') }}
       </button>
 
-      <p class="pb-4 text-center text-[11px] text-forest-muted">CashIko v1 · ang business companion ng pinoy microbusiness</p>
+      <p class="pb-4 text-center text-[11px] text-forest-muted">{{ t('CashIko v1 · the business companion for Pinoy microbusinesses') }}</p>
     </div>
   </AppLayout>
 </template>

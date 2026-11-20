@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 370" width="500" height="370">
+  <defs>
+    <!-- True Transparency Mask for Arm Bicep Crease -->
+    <mask id="arm-cutout">
+      <rect width="500" height="370" fill="white" />
+      <path d="M 178 163 C 166 171, 158 182, 154 193" stroke="black" stroke-width="6.5" stroke-linecap="round" fill="none" />
+    </mask>
+
+    <!-- True Transparency Mask for Wallet Clasp Gap & Button Hole -->
+    <mask id="wallet-cutout">
+      <rect width="500" height="370" fill="white" />
+      <rect x="326" y="196" width="38" height="29" rx="14.5" fill="none" stroke="black" stroke-width="5.5" />
+    </mask>
+
+    <mask id="clasp-hole">
+      <rect width="500" height="370" fill="white" />
+      <circle cx="340" cy="210.5" r="4.5" fill="black" />
+    </mask>
+
+    <!-- True Transparency Mask for Front Banknote Notch -->
+    <mask id="bill-notch">
+      <rect width="500" height="370" fill="white" />
+      <circle cx="329" cy="172" r="8.5" fill="black" />
+    </mask>
+  </defs>
+
+  <!-- ICON MARK -->
+  <g id="cashiko-icon">
+    <!-- Flexed Arm & Fist -->
+    <path fill="#0B874B" mask="url(#arm-cutout)" d="
+      M 256 245
+      C 225 252, 178 248, 148 220
+      C 118 192, 114 142, 134 96
+      C 154 50, 196 22, 246 14
+      C 264 11, 276 17, 284 30
+      L 298 54
+      C 302 61, 294 67, 288 61
+      L 281 49
+      L 286 61
+      C 290 68, 281 74, 275 67
+      L 268 54
+      L 272 67
+      C 276 74, 267 80, 261 73
+      L 254 59
+      L 257 71
+      C 261 78, 252 84, 246 77
+      L 240 65
+      C 228 67, 218 63, 215 56
+      C 186 76, 170 116, 176 164
+      C 198 152, 232 154, 254 172
+      C 266 192, 268 224, 256 245
+      Z" />
+
+    <!-- Philippine Peso Symbol (₱) -->
+    <g id="peso-symbol" fill="#0B874B">
+      <!-- Vertical Stem & Bowl -->
+      <path d="
+        M 223.5 84
+        L 245 84
+        C 258 84, 267 93, 267 107
+        C 267 121, 258 130, 245 130
+        L 231 130
+        L 231 144.5
+        C 231 148.6, 227.6 152, 223.5 152
+        C 219.4 152, 216 148.6, 216 144.5
+        L 216 91.5
+        C 216 87.4, 219.4 84, 223.5 84
+        Z
+        M 231 97
+        L 231 117
+        L 244 117
+        C 250 117, 254 113, 254 107
+        C 254 101, 250 97, 244 97
+        Z" />
+      <!-- Symmetric Horizontal Crossbars -->
+      <rect x="204" y="96.5" width="72" height="9" rx="4.5" />
+      <rect x="204" y="111.5" width="72" height="9" rx="4.5" />
+    </g>
+
+    <!-- Banknotes Emerging from Wallet -->
+    <path fill="#0B874B" d="
+      M 278 171
+      C 292 146, 316 130, 342 125
+      C 345 124, 347 127, 346 130
+      L 343 141
+      C 322 145, 303 156, 291 171
+      Z" />
+    <path fill="#48A842" mask="url(#bill-notch)" d="
+      M 294 171
+      C 308 152, 330 142, 355 141
+      C 358 141, 360 144, 359 147
+      L 351 171
+      Z" />
+
+    <!-- Wallet Body -->
+    <path fill="#0B874B" mask="url(#wallet-cutout)" d="
+      M 261 174
+      C 262 165, 272 165, 274 176
+      L 348 176
+      Q 358 176, 358 186
+      L 358 235
+      Q 358 245, 348 245
+      L 263 245
+      C 274 224, 272 192, 261 174
+      Z" />
+
+    <!-- Wallet Clasp Strap -->
+    <rect x="329" y="199" width="33" height="23" rx="11.5" fill="#0B874B" mask="url(#clasp-hole)" />
+
+    <!-- Action / Emphasis Lines -->
+    <g stroke="#0B874B" stroke-linecap="round" fill="none">
+      <!-- Left Lines -->
+      <line x1="54" y1="146" x2="88" y2="164" stroke-width="8" />
+      <line x1="34" y1="206" x2="72" y2="195" stroke-width="8" />
+      <!-- Elbow Sparks -->
+      <line x1="100" y1="194" x2="117" y2="205" stroke-width="6" />
+      <line x1="94" y1="221" x2="114" y2="225" stroke-width="6" />
+      <line x1="111" y1="246" x2="125" y2="237" stroke-width="6" />
+      <!-- Right Lines -->
+      <line x1="446" y1="146" x2="412" y2="164" stroke-width="8" />
+      <line x1="466" y1="206" x2="428" y2="195" stroke-width="8" />
+    </g>
+  </g>
+
+  <!-- VECTOR WORDMARK ("CashIko") -->
+  <g id="cashiko-wordmark" transform="translate(-3.5, 4)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- "Cash" in Deep Forest Green -->
+    <g stroke="#184A32">
+      <!-- C -->
+      <path d="M 128 291 A 25.5 25.5 0 1 0 128 327" stroke-width="15" />
+      <!-- a -->
+      <circle cx="164" cy="318" r="16.5" stroke-width="14" />
+      <line x1="180.5" y1="301.5" x2="180.5" y2="335" stroke-width="14" />
+      <!-- s -->
+      <path d="M 232 303 C 224 297, 208 298, 208 307 C 208 317, 234 316, 234 328 C 234 337, 216 338, 207 332" stroke-width="14" />
+      <!-- h -->
+      <line x1="254" y1="276" x2="254" y2="335" stroke-width="14" />
+      <path d="M 254 313 C 254 298, 286 298, 286 314 L 286 335" stroke-width="14" />
+    </g>
+
+    <!-- "Iko" in Vibrant Green -->
+    <g stroke="#139E3B">
+      <!-- I -->
+      <line x1="310" y1="276" x2="310" y2="335" stroke-width="14.5" />
+      <!-- k -->
+      <line x1="332" y1="276" x2="332" y2="335" stroke-width="14" />
+      <line x1="364" y1="301" x2="338" y2="319" stroke-width="13.5" />
+      <line x1="345" y1="315" x2="366" y2="335" stroke-width="14" />
+      <!-- o -->
+      <circle cx="406" cy="318" r="16.5" stroke-width="14.5" />
+    </g>
+  </g>
+</svg>

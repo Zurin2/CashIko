@@ -12,6 +12,7 @@ import {
   CalendarDays, Building2, Sparkles, CreditCard, Settings as SettingsIcon,
   Menu, X, Plus, ChevronDown, LogOut, Gem,
 } from 'lucide-vue-next'
+import { t } from '@/lib/i18n'
 
 const page = usePage()
 const mobileMenu = ref(false)
@@ -38,38 +39,45 @@ const onBranchChange = (e) => {
 const showBranchSelect = computed(() => isPremium.value && branches.value.length > 1)
 
 const tabs = [
-  { label: 'Home', path: '/home', href: url('home'), icon: Home, active: computed(() => page.url === '/home') },
-  { label: 'Benta', path: '/sales', href: url('sales.index'), icon: ShoppingBag, active: computed(() => page.url.startsWith('/sales')) },
-  { label: 'Stock', path: '/stock', href: url('stock.index'), icon: Boxes, active: computed(() => page.url.startsWith('/stock')) },
-  { label: 'Utang', path: '/utang', href: url('utang.index'), icon: HandCoins, active: computed(() => page.url.startsWith('/utang')) },
-  { label: 'Higit pa', path: '/more', href: url('more'), icon: Menu, active: computed(() => page.url.startsWith('/more')) },
+  { label: t('Home'), path: '/home', href: url('home'), icon: Home, active: computed(() => page.url === '/home') },
+  { label: t('Sales'), path: '/sales', href: url('sales.index'), icon: ShoppingBag, active: computed(() => page.url.startsWith('/sales')) },
+  { label: t('Stock'), path: '/stock', href: url('stock.index'), icon: Boxes, active: computed(() => page.url.startsWith('/stock')) },
+  { label: t('Debts'), path: '/utang', href: url('utang.index'), icon: HandCoins, active: computed(() => page.url.startsWith('/utang')) },
+  { label: t('More'), path: '/more', href: url('more'), icon: Menu, active: computed(() => page.url.startsWith('/more')) },
 ]
 
 const sidebar = [
-  { label: 'Home', href: url('home') },
-  { label: 'Benta (Sales)', href: url('sales.index') },
-  { label: 'Stock', href: url('stock.index') },
-  { label: 'Utang', href: url('utang.index') },
-  { label: 'Gastos', href: url('expenses.index') },
-  { label: 'Reports', href: url('reports.index') },
-  { label: 'Daily Summary', href: url('daily.index') },
-  { label: 'Branches', href: url('branches.index'), premium: true },
-  { label: 'Tanong kay CashIko', href: url('assistant.index'), premium: true },
-  { label: 'Pricing', href: url('pricing.index') },
-  { label: 'Settings', href: url('settings.index') },
+  { label: t('Home'), href: url('home') },
+  { label: t('Sales'), href: url('sales.index') },
+  { label: t('Stock'), href: url('stock.index') },
+  { label: t('Debts'), href: url('utang.index') },
+  { label: t('Expenses'), href: url('expenses.index') },
+  { label: t('Reports'), href: url('reports.index') },
+  { label: t('Daily Summary'), href: url('daily.index') },
+  { label: t('Branches'), href: url('branches.index'), premium: true },
+  { label: t('Ask CashIko'), href: url('assistant.index'), premium: true },
+  { label: t('Pricing'), href: url('pricing.index') },
+  { label: t('Settings'), href: url('settings.index') },
 ]
 
 const fabButtons = [
-  { label: 'Magdagdag ng Benta', href: url('sales.index', { new: 1 }) },
-  { label: 'Magdagdag ng Utang', href: url('utang.index', { new: 1 }) },
-  { label: 'Mag-restock', href: url('stock.index', { restock: 1 }) },
-  { label: 'Gastos', href: url('expenses.index', { new: 1 }) },
+  { label: t('Add Sale'), href: url('sales.index', { new: 1 }) },
+  { label: t('Add Debt'), href: url('utang.index', { new: 1 }) },
+  { label: t('Restock'), href: url('stock.index', { restock: 1 }) },
+  { label: t('Add Expense'), href: url('expenses.index', { new: 1 }) },
 ]
 
 const logout = () => router.post(route('logout'))
 
-/* Active check against current URL path without query. */
-const isActive = (href) => page.url.split('?')[0] === href.split('?')[0]
+/* Active check: compare pathnames (page.url is a path; route() returns absolute URLs). */
+const pathOf = (u) => {
+  try {
+    return new URL(u, window.location.origin).pathname
+  } catch {
+    return String(u).split('?')[0]
+  }
+}
+const isActive = (href) => pathOf(page.url) === pathOf(href)
 const onFabNavigation = (href) => {
   fabOpen.value = false
   router.visit(href)
@@ -80,11 +88,11 @@ const onFabNavigation = (href) => {
   <div class="min-h-screen bg-surface pb-24 md:pb-8">
     <!-- Desktop sidebar -->
     <aside class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-warm bg-white md:flex">
-      <div class="flex items-center gap-2 px-5 py-5">
-        <div class="grid h-9 w-9 place-items-center rounded-xl bg-forest text-lg font-extrabold text-white">C</div>
+      <div class="flex items-center gap-2.5 px-5 py-5">
+        <img src="/images/cashiko-icon.svg" alt="CashIko" class="h-9 w-auto" draggable="false" />
         <div>
           <div class="font-bold leading-none text-forest-dark">CashIko</div>
-          <div class="text-[11px] font-medium text-forest-muted">Business companion</div>
+          <div class="text-[11px] font-medium text-forest-muted">{{ t('Business companion') }}</div>
         </div>
       </div>
 
@@ -112,7 +120,7 @@ const onFabNavigation = (href) => {
             <div class="truncate text-sm font-semibold text-forest-dark">{{ page.props.auth.user?.name }}</div>
             <div class="truncate text-[11px] text-forest-muted">{{ page.props.auth.user?.email }}</div>
           </div>
-          <button type="button" class="tap-target grid place-items-center rounded-lg text-forest-muted hover:text-red-600" title="Log out" @click="logout">
+          <button type="button" class="tap-target grid place-items-center rounded-lg text-forest-muted hover:text-red-600" :title="t('Log out')" @click="logout">
             <LogOut class="h-4 w-4" />
           </button>
         </div>
@@ -122,11 +130,14 @@ const onFabNavigation = (href) => {
     <!-- Mobile header -->
     <header class="sticky top-0 z-40 border-b border-warm bg-white/95 backdrop-blur md:hidden print-hide">
       <div class="flex items-center justify-between px-4 py-3">
-        <button class="tap-target grid place-items-center md:hidden" @click="mobileMenu = true" aria-label="Menu">
+        <button class="tap-target grid place-items-center md:hidden" @click="mobileMenu = true" :aria-label="t('Menu')">
           <Menu class="h-5 w-5 text-forest-dark" />
         </button>
         <div class="grid place-items-center text-left md:hidden">
-          <div class="font-bold text-forest-dark">CashIko</div>
+          <div class="flex items-center gap-1.5">
+            <img src="/images/cashiko-icon.svg" alt="CashIko" class="h-6 w-auto" draggable="false" />
+            <div class="font-bold text-forest-dark">CashIko</div>
+          </div>
         </div>
         <select
           v-if="showBranchSelect"
@@ -134,9 +145,9 @@ const onFabNavigation = (href) => {
           :value="branchParam"
           @change="onBranchChange"
         >
-          <option value="all">All Branches</option>
+          <option value="all">{{ t('All Branches') }}</option>
           <option v-for="b in branches" :key="b.id" :value="b.id">
-            {{ b.name }}<template v-if="!b.is_active"> (Inactive)</template>
+            {{ b.name }}<template v-if="!b.is_active"> {{ t('(Inactive)') }}</template>
           </option>
         </select>
       </div>
@@ -148,8 +159,11 @@ const onFabNavigation = (href) => {
         <div class="absolute inset-0 bg-black/50" @click="mobileMenu = false"></div>
         <div class="absolute inset-y-0 left-0 w-72 bg-white p-5 shadow-cardlg">
           <div class="mb-5 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+            <img src="/images/cashiko-icon.svg" alt="CashIko" class="h-8 w-auto" draggable="false" />
             <div class="text-lg font-extrabold text-forest">CashIko</div>
-            <button @click="mobileMenu = false" aria-label="close"><X class="h-5 w-5" /></button>
+          </div>
+            <button @click="mobileMenu = false" :aria-label="t('Close')"><X class="h-5 w-5" /></button>
           </div>
           <nav class="space-y-1">
             <Link
@@ -169,7 +183,7 @@ const onFabNavigation = (href) => {
           <div class="mt-6 border-t border-warm pt-4 text-xs text-forest-muted">
             <div class="font-semibold text-forest-dark">{{ page.props.auth.user?.name }}</div>
             {{ page.props.auth.user?.email }}
-            <button class="mt-2 block font-semibold text-red-600" @click="logout">Log out</button>
+            <button class="mt-2 block font-semibold text-red-600" @click="logout">{{ t('Log out') }}</button>
           </div>
         </div>
       </div>
@@ -182,7 +196,7 @@ const onFabNavigation = (href) => {
     <!-- FAB -->
     <div v-if="['/home', '/sales'].includes(page.url.split('?')[0])" class="fixed bottom-24 right-4 z-40 md:right-8 print-hide">
       <div v-if="fabOpen" class="fixed inset-0 z-20" @click="fabOpen = false" />
-      <div v-if="fabOpen" class="absolute bottom-16 right-0 mb-2 w-56 overflow-hidden rounded-2xl bg-white p-1 shadow-cardlg">
+      <div v-if="fabOpen" class="absolute bottom-16 right-0 z-30 mb-2 w-56 overflow-hidden rounded-2xl bg-white p-1 shadow-cardlg">
         <button
           v-for="b in fabButtons"
           :key="b.label"
@@ -193,7 +207,7 @@ const onFabNavigation = (href) => {
         </button>
       </div>
       <button
-        class="grid h-14 w-14 place-items-center rounded-full bg-mango text-white shadow-cardlg active:scale-95"
+        class="z-30 grid h-14 w-14 place-items-center rounded-full bg-mango text-white shadow-cardlg active:scale-95"
         :aria-expanded="fabOpen"
         @click="fabOpen = !fabOpen"
         :class="fabOpen ? 'rotate-180' : ''"
@@ -206,14 +220,14 @@ const onFabNavigation = (href) => {
     <nav class="fixed bottom-0 left-0 right-0 z-30 border-t border-warm bg-white md:hidden print-hide">
       <div class="mx-auto grid h-16 max-w-md grid-cols-5">
         <Link
-          v-for="t in tabs"
-          :key="t.label"
-          :href="t.href"
+          v-for="tab in tabs"
+          :key="tab.label"
+          :href="tab.href"
           class="flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold transition-colors duration-150"
-          :class="t.active.value ? 'text-forest' : 'text-stone-400'"
+          :class="tab.active.value ? 'text-forest' : 'text-stone-400'"
         >
-          <component :is="t.icon" class="h-5 w-5" :stroke-width="t.active.value ? 2.5 : 2" />
-          {{ t.label }}
+          <component :is="tab.icon" class="h-5 w-5" :stroke-width="tab.active.value ? 2.5 : 2" />
+          {{ tab.label }}
         </Link>
       </div>
     </nav>

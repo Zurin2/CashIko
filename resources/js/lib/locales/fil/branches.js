@@ -1,0 +1,37 @@
+/** Filipino copy for Branches (Pages/Branches/Index.vue). Keys are the exact English strings passed to `t()`. */
+export default {
+  'Branch': 'Branch',
+  'Premium feature': 'Premium feature',
+  'Upgrade to Premium to track multiple branches in real time.': 'Mag-upgrade sa Premium para masubaybayan ang maraming branch in real time.',
+  'See plans': 'Tingnan ang plans',
+
+  'Top branch today': 'Top branch ngayon',
+  'transactions': 'transaksyon',
+  "Today's Sales by Branch": 'Benta Ngayon per Branch',
+  'Txns': 'Txns',
+  'Profit': 'Kita',
+  'Inactive': 'Hindi Aktibo',
+
+  'No address details': 'Walang address',
+  'Deactivate': 'I-deactivate',
+  'Reactivate': 'I-reactivate',
+  'Deactivate {name}? Its historical records are never touched.': 'I-deactivate ang {name}? Hindi gagalawin ang mga lumang record nito.',
+
+  'Edit Branch': 'I-edit ang Branch',
+  'New Branch': 'Bagong Branch',
+  'Branch name': 'Pangalan ng branch',
+  'e.g. Stall 2 - Market': 'Hal. Stall 2 - Palengke',
+  'House / Building no.': 'House / Building no.',
+  'e.g. Blk 12 Lot 7': 'Hal. Blk 12 Lot 7',
+  'Street': 'Street',
+  'e.g. Rizal Avenue': 'Hal. Rizal Avenue',
+  'Barangay': 'Barangay',
+  'e.g. Brgy. San Isidro': 'Hal. Brgy. San Isidro',
+  'City / Municipality': 'Lungsod / Munisipyo',
+  'Select a city': 'Pumili ng lungsod',
+  'Status': 'Status',
+  'Active': 'Aktibo',
+  'Historical records stay intact even if this branch goes inactive.': 'Hindi mabubura ang mga lumang record kahit maging inactive ang branch.',
+  'Enter a branch name.': 'Ilagay ang pangalan ng branch.',
+  'Select a city.': 'Pumili ng lungsod.',
+}

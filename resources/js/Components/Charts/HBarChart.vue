@@ -1,6 +1,7 @@
 <script setup>
 /** Horizontal category bars (§8.9 Expenses by Category). */
 import { computed } from 'vue'
+import { t } from '@/lib/i18n'
 
 const props = defineProps({
   data: { type: Object, required: true },
@@ -28,6 +29,6 @@ const fmt = (n) => Number(n).toLocaleString('en-PH', { style: 'currency', curren
         <div class="h-full rounded-full bg-mango" :style="{ width: r.pct + '%' }" />
       </div>
     </div>
-    <p v-if="!rows.length" class="text-sm text-forest-muted">Walang gastos sa panahong ito.</p>
+    <p v-if="!rows.length" class="text-sm text-forest-muted">{{ t('No expenses in this period.') }}</p>
   </div>
 </template>

@@ -96,13 +96,21 @@ class UtangController extends Controller
             'new_customer.name' => 'nullable|string|max:120',
             'new_customer.phone' => 'nullable|string|max:40',
             'amount' => 'required|numeric|min:1',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date|after_or_equal:today',
             'branch_id' => 'nullable|integer',
             'note' => 'nullable|string|max:500',
         ]);
 
+        // A debt needs a customer — never invent a generic walk-in record.
+        if (empty($data['customer_id']) && empty($data['new_customer']['name'] ?? null)) {
+            return back()->with('error', __('A customer is required for utang.'));
+        }
+
+        // Branch must belong to this business (same guard as the POS).
         [$all, $fallback] = Period::branch($business, $request->query('branch'));
-        $branchId = ($data['branch_id'] ?? null) ?: $fallback;
+        $branchId = collect([$data['branch_id'] ?? null, $fallback])->first(
+            fn ($id) => $business->branches()->where('id', $id)->exists()
+        );
 
         $customer = $data['customer_id'] ? $business->customers()->find($data['customer_id'])
             : $business->customers()->create([
@@ -111,7 +119,7 @@ class UtangController extends Controller
             ]);
 
         if (! $customer) {
-            return back()->with('error', 'Customer not found.');
+            return back()->with('error', __('Customer not found.'));
         }
 
         UtangEntry::create([
@@ -127,7 +135,7 @@ class UtangController extends Controller
             'recorded_by_id' => $business->user_id,
         ]);
 
-        return redirect()->to('/utang')->with('success', sprintf('Naitala ang utang ni %s: ₱%s', $customer->name, number_format($data['amount'], 2)));
+        return redirect()->to('/utang')->with('success', __('Utang recorded for :name: ₱:amount', ['name' => $customer->name, 'amount' => number_format($data['amount'], 2)]));
     }
 
     /** Payment attribution: viewing All Branches credits the branch owed the most (§7.9). */
@@ -138,15 +146,34 @@ class UtangController extends Controller
         $data = $request->validate([
             'customer_id' => 'required|integer',
             'amount' => 'required|numeric|min:0.5',
-            'date' => 'required|date',
+            'date' => 'required|date|before_or_equal:today',
             'branch_id' => 'nullable|integer',
             'note' => 'nullable|string|max:500',
         ]);
 
         $customer = $business->customers()->findOrFail($data['customer_id']);
 
+        // A payment cannot exceed the outstanding utang — that would flip the
+        // ledger negative and show the customer as "Up to date" while owed money.
+        $balance = round(
+            $business->utangEntries()->where('customer_id', $customer->id)
+                ->where('type', 'utang')->sum('amount')
+            - $business->utangEntries()->where('customer_id', $customer->id)
+                ->where('type', 'payment')->sum('amount'),
+            2
+        );
+
+        if ($data['amount'] > $balance + 0.001) {
+            return back()->with('error', __('Payment (:paid) is larger than the utang (:owed).', [
+                'paid' => number_format($data['amount'], 2),
+                'owed' => number_format(max($balance, 0), 2),
+            ]));
+        }
+
         [$all, $fallback] = Period::branch($business, $request->query('branch'));
-        $branchId = ($data['branch_id'] ?? null) ?: $this->branchOwedMost($business, $customer) ?: $fallback;
+        $branchId = collect([$data['branch_id'] ?? null, $fallback])->first(
+            fn ($id) => $business->branches()->where('id', $id)->exists()
+        ) ?: $this->branchOwedMost($business, $customer) ?: $fallback;
 
         UtangEntry::create([
             'business_id' => $business->id,
@@ -160,7 +187,7 @@ class UtangController extends Controller
             'recorded_by_id' => $business->user_id,
         ]);
 
-        return redirect()->to('/utang')->with('success', 'Naitala na ang bayad. Salamat!');
+        return redirect()->to('/utang')->with('success', __('Payment recorded. Thank you!'));
     }
 
     private function branchOwedMost($business, $customer): ?int
@@ -180,7 +207,7 @@ class UtangController extends Controller
         $customer = $request->user()->business->customers()->findOrFail($customerId);
         $customer->update(['tag' => $data['tag']]);
 
-        return back()->with('success', "Naka-save: {$customer->name} → {$data['tag']}.");
+        return back()->with('success', __('Saved: :name → :tag.', ['name' => $customer->name, 'tag' => $data['tag']]));
     }
 
     /** §7.10 template; Send logs a `sent` reminder (v1 has no real SMS). */
@@ -205,6 +232,6 @@ class UtangController extends Controller
             'date' => now()->toDateString(),
         ]);
 
-        return back()->with('success', 'Na-send na ang reminder (saved as sent).');
+        return back()->with('success', __('Reminder sent (saved as sent).'));
     }
 }

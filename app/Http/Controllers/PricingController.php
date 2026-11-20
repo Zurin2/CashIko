@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-/** Pricing (§8.13): mocked plans — plan toggle writes Business.plan directly. */
+/** Pricing (§8.13): plan toggle writes Business.plan directly. */
 class PricingController extends Controller
 {
     public function index(Request $request)
@@ -28,6 +28,6 @@ class PricingController extends Controller
 
         $request->user()->business->update(['plan' => $data['plan']]);
 
-        return redirect()->to('/pricing')->with('success', 'Mocked payment for prototype — no real charge. Plan is set to '.ucfirst($data['plan']).'.');
+        return redirect()->to('/pricing')->with('success', __('Plan changed to :plan.', ['plan' => ucfirst($data['plan'])]));
     }
 }

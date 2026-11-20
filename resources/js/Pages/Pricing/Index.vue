@@ -1,10 +1,11 @@
 <script setup>
-/** Pricing (§8.13): mocked plan toggle. */
+/** Pricing (§8.13): plan toggle. */
 import { Head, router } from '@inertiajs/vue3'
 import { Check, Crown } from 'lucide-vue-next'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import Toaster from '@/Components/Toaster.vue'
 import { usePage } from '@inertiajs/vue3'
+import { t } from '@/lib/i18n'
 
 const props = defineProps({ trialDays: Number })
 
@@ -20,7 +21,7 @@ const FEATURES = {
   ],
   premium: [
     'Everything in Basic',
-    'AI assistant — Tanong kay CashIko',
+    'AI assistant — ask CashIko',
     'Multi-branch real-time tracking',
     'Priority support',
   ],
@@ -31,13 +32,13 @@ const choose = (plan) =>
 </script>
 
 <template>
-  <Head title="Pricing" />
+  <Head :title="t('Pricing')" />
   <AppLayout>
     <Toaster />
     <div class="md:max-w-2xl mx-auto pb-8">
       <div class="mb-4 rounded-2xl border border-forest/15 bg-forest/5 px-4 py-3 text-sm font-semibold text-forest-muted">
-        Free trial: <b class="text-forest-dark">{{ props.trialDays }} day{{ props.trialDays === 1 ? '' : 's' }} left</b>
-        <span class="block text-[11px] font-normal">GCash / Maya payments coming soon.</span>
+        {{ t('Free trial:') }} <b class="text-forest-dark">{{ t('{count} days left', { count: props.trialDays }) }}</b>
+        <span class="block text-[11px] font-normal">{{ t('GCash / Maya payments coming soon.') }}</span>
       </div>
 
       <div class="space-y-4">
@@ -48,14 +49,14 @@ const choose = (plan) =>
                 {{ plan }} <Crown v-if="plan === 'premium'" class="h-4 w-4 text-mango" />
               </h2>
               <div class="text-sm text-forest-muted">
-                <span class="font-bold text-forest-dark">₱{{ plan === 'basic' ? 99 : 199 }}</span> / month (mock)
+                <span class="font-bold text-forest-dark">₱{{ plan === 'basic' ? 99 : 199 }}</span> {{ t('/ month') }}
               </div>
             </div>
-            <span v-if="(isPremium ? 'premium' : 'basic') === plan" class="rounded-full bg-forest px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">CURRENT</span>
+            <span v-if="(isPremium ? 'premium' : 'basic') === plan" class="rounded-full bg-forest px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">{{ t('CURRENT') }}</span>
           </div>
           <ul class="mt-3 space-y-1.5 text-sm">
             <li v-for="f in FEATURES[plan]" :key="f" class="flex items-start gap-2 text-forest-dark">
-              <Check class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> {{ f }}
+              <Check class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> {{ t(f) }}
             </li>
           </ul>
           <button
@@ -64,12 +65,10 @@ const choose = (plan) =>
             :class="plan === 'premium' ? 'bg-mango text-white' : 'border border-forest text-forest'"
             @click="choose(plan)"
           >
-            {{ plan === 'premium' ? 'Upgrade to Premium' : 'Downgrade to Basic' }}
+            {{ plan === 'premium' ? t('Upgrade to Premium') : t('Downgrade to Basic') }}
           </button>
         </article>
       </div>
-
-      <p class="mt-5 text-center text-[11px] text-forest-muted">Mocked payment for prototype. No real charge.</p>
     </div>
   </AppLayout>
 </template>

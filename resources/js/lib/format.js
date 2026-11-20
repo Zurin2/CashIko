@@ -1,4 +1,5 @@
 /** Money & date helpers mirrored from spec §7.1 (src/lib/format.js). */
+import { t } from './i18n'
 
 export const peso = (n) =>
   '₱' + (Number(n) || 0).toLocaleString('en-PH', {
@@ -25,9 +26,9 @@ export const daysFromNow = (n) => isoLocal(new Date(Date.now() + n * 86400000))
 export const friendlyDate = (iso) => {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  const t = isoLocal()
-  if (isoLocal(d) === t) return 'Today'
-  if (isoLocal(d) === isoLocal(new Date(Date.now() - 86400000))) return 'Yesterday'
+  const today = isoLocal()
+  if (isoLocal(d) === today) return t('Today')
+  if (isoLocal(d) === isoLocal(new Date(Date.now() - 86400000))) return t('Yesterday')
   return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
 }
 
@@ -42,7 +43,7 @@ export const friendlyDateTime = (iso) => {
 }
 
 export const paymentLabel = (p) =>
-  ({ cash: 'Cash', gcash: 'GCash', maya: 'Maya', utang: 'Utang' }[p] || p)
+  ({ cash: 'Cash', gcash: 'GCash', maya: 'Maya', utang: t('Utang') }[p] || p)
 
 export const paymentColor = (p) =>
   ({
@@ -54,9 +55,9 @@ export const paymentColor = (p) =>
 
 export const greeting = () => {
   const h = new Date().getHours()
-  if (h < 12) return 'Magandang umaga'
-  if (h < 18) return 'Magandang hapon'
-  return 'Magandang gabi'
+  if (h < 12) return t('Good morning')
+  if (h < 18) return t('Good afternoon')
+  return t('Good evening')
 }
 
 export default { peso, pesoShort, todayISO, daysFromNow, friendlyDate, friendlyDateTime, paymentLabel, paymentColor, greeting }

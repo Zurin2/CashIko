@@ -2,20 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Business;
-use App\Services\SampleDataService;
 use Illuminate\Http\Request;
 
-/** Demo data tools wired to Settings (spec §14 resetData/loadSampleData). */
+/** Data tools wired to Settings (spec §14 resetData). */
 class DataController extends Controller
 {
-    public function loadSample(Request $request)
-    {
-        app(SampleDataService::class)->load($request->user()->business);
-
-        return redirect()->to('/settings')->with('success', 'Sample data is loaded.');
-    }
-
     public function reset(Request $request)
     {
         $business = $request->user()->business;
@@ -30,6 +21,6 @@ class DataController extends Controller
 
         $business->delete();
 
-        return redirect()->to('/')->with('success', 'Data has been reset.');
+        return redirect()->to('/')->with('success', __('All data has been reset.'));
     }
 }

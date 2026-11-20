@@ -13,7 +13,7 @@ class AssistantController extends Controller
     {
         $business = $request->user()->business;
         if ($business->plan !== 'premium') {
-            return redirect()->to('/pricing')->with('error', 'Premium feature.');
+            return redirect()->to('/pricing')->with('error', __('Premium feature.'));
         }
 
         $messages = $business->chatMessages()->orderBy('created_at')->get()->map(
@@ -27,7 +27,7 @@ class AssistantController extends Controller
     {
         $business = $request->user()->business;
         if ($business->plan !== 'premium') {
-            return redirect()->to('/assistant')->with('error', 'Premium feature.');
+            return redirect()->to('/assistant')->with('error', __('Premium feature.'));
         }
 
         $data = $request->validate(['question' => 'required|string|max:400']);
@@ -47,6 +47,6 @@ class AssistantController extends Controller
         $business = $request->user()->business;
         $business->chatMessages()->get()->each->delete();
 
-        return redirect()->to('/assistant')->with('success', 'Cleared chat history.');
+        return redirect()->to('/assistant')->with('success', __('Chat history cleared.'));
     }
 }

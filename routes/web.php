@@ -85,7 +85,9 @@ Route::middleware(['auth', 'business'])->group(function () {
     Route::post('/pricing', [PricingController::class, 'setPlan'])->name('pricing.plan');
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
-    Route::post('/data/sample', [DataController::class, 'loadSample'])->name('data.sample');
+    Route::post('/settings/payment-methods', [SettingsController::class, 'addPaymentMethod'])->name('settings.payment-methods.add');
+    Route::post('/settings/payment-methods/{method}', [SettingsController::class, 'savePaymentMethod'])->name('settings.payment-methods.save');
+    Route::delete('/settings/payment-methods/{method}', [SettingsController::class, 'destroyPaymentMethod'])->name('settings.payment-methods.destroy');
     Route::post('/data/reset', [DataController::class, 'reset'])->name('data.reset');
 
     Route::get('/more', fn () => Inertia::render('More/Index'))->name('more');

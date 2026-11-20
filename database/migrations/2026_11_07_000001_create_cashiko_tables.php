@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('default_reminder_tone')->default('gentle'); // gentle | firm
             $table->boolean('auto_remind')->default(false);
             $table->integer('low_stock_threshold')->default(5);
-            $table->string('language')->default('taglish'); // english | taglish
+            $table->string('language')->default('english'); // english | filipino
             $table->timestamps();
         });
 

@@ -1,5 +1,5 @@
 <script setup>
-/** Register — twin of the mockup-driven Login (same cream backdrop, card, tokens). */
+/** Register — twin of Login (same cream backdrop, card, tokens). */
 import { ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Eye, EyeOff, KeyRound, Mail, PhilippinePeso, User, Wallet } from 'lucide-vue-next';
@@ -22,7 +22,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Gumawa ng account" />
+    <Head title="Create account" />
 
     <div class="relative flex min-h-screen items-center justify-center overflow-x-clip bg-cream px-4 py-10">
         <!-- floating watermarks (decorative) -->
@@ -34,20 +34,20 @@ const submit = () => {
         <main class="w-full max-w-[560px] rounded-3xl bg-white px-7 py-10 shadow-cardlg sm:px-12">
             <!-- logo -->
             <img
-                src="/images/cashiko-logo.png"
+                src="/images/cashiko-logo.svg"
                 alt="CashIko"
-                class="mx-auto h-24 w-auto select-none object-contain mix-blend-multiply"
+                class="mx-auto h-24 w-auto select-none object-contain"
                 draggable="false"
             />
 
             <h1 class="mt-5 text-center text-[22px] font-extrabold tracking-tight text-forest-deep">
-              Simulan ang iyong negosyo!
+              Start your business!
             </h1>
-            <p class="mt-1 text-center text-sm text-stone-500">I-sign up para ma-track ang benta, utang, at kita.</p>
+            <p class="mt-1 text-center text-sm text-stone-500">Sign up to track sales, debts, and profit.</p>
 
             <form @submit.prevent="submit" class="mt-7">
                 <div>
-                    <label for="name" class="mb-1.5 block text-sm font-semibold text-forest-deep">Pangalan</label>
+                    <label for="name" class="mb-1.5 block text-sm font-semibold text-forest-deep">Name</label>
 
                     <div class="relative">
                         <User class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-forest/70" aria-hidden="true" />
@@ -59,7 +59,7 @@ const submit = () => {
                             autofocus
                             autocomplete="name"
                             class="w-full rounded-lg border border-warm/70 px-11 py-3 text-[15px] text-forest-deep shadow-sm transition-colors duration-150 placeholder:text-stone-400 focus:border-forest/60 focus:outline-none focus:ring-2 focus:ring-forest/25"
-                            placeholder="Hal. Aling Nena"
+                            placeholder="e.g. Nena"
                         />
                     </div>
                     <p v-if="form.errors.name" class="mt-1.5 text-xs font-semibold text-red-600">{{ form.errors.name }}</p>
@@ -77,7 +77,7 @@ const submit = () => {
                             required
                             autocomplete="username"
                             class="w-full rounded-lg border border-warm/70 px-11 py-3 text-[15px] text-forest-deep shadow-sm transition-colors duration-150 placeholder:text-stone-400 focus:border-forest/60 focus:outline-none focus:ring-2 focus:ring-forest/25"
-                            placeholder="iyon@email.ph"
+                            placeholder="you@email.ph"
                         />
                     </div>
                     <p v-if="form.errors.email" class="mt-1.5 text-xs font-semibold text-red-600">{{ form.errors.email }}</p>
@@ -100,7 +100,7 @@ const submit = () => {
                         <button
                             type="button"
                             @click="showPassword = !showPassword"
-                            :aria-label="showPassword ? 'Itago ang password' : 'Ipakita ang password'"
+                            :aria-label="showPassword ? 'Hide password' : 'Show password'"
                             class="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-forest/60 transition-colors duration-150 hover:text-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest/40"
                         >
                             <EyeOff v-if="showPassword" class="h-5 w-5" aria-hidden="true" />
@@ -111,7 +111,7 @@ const submit = () => {
                 </div>
 
                 <div class="mt-4">
-                    <label for="password_confirmation" class="mb-1.5 block text-sm font-semibold text-forest-deep">Kumpirmahin ang Password</label>
+                    <label for="password_confirmation" class="mb-1.5 block text-sm font-semibold text-forest-deep">Confirm Password</label>
 
                     <div class="relative">
                         <KeyRound class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-forest/70" aria-hidden="true" />
@@ -127,7 +127,7 @@ const submit = () => {
                         <button
                             type="button"
                             @click="showConfirmation = !showConfirmation"
-                            :aria-label="showConfirmation ? 'Itago ang kumpirmasyon' : 'Ipakita ang kumpirmasyon'"
+                            :aria-label="showConfirmation ? 'Hide confirmation' : 'Show confirmation'"
                             class="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-forest/60 transition-colors duration-150 hover:text-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest/40"
                         >
                             <EyeOff v-if="showConfirmation" class="h-5 w-5" aria-hidden="true" />
@@ -147,19 +147,19 @@ const submit = () => {
                             <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.3" stroke-width="4" />
                             <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
                         </svg>
-                    Gumagawa ng account…
+                    Creating account…
                     </span>
-                    <span v-else>Mag-sign up</span>
+                    <span v-else>Sign up</span>
                 </button>
             </form>
 
             <p class="mt-6 text-center text-[15px] text-forest-deep">
-              May account ka na?
+              Already have an account?
                 <Link
                     :href="route('login')"
                     class="font-bold text-forest/80 transition-colors duration-150 hover:text-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
-                    Mag-log in dito.
+                    Log in here.
                 </Link>
             </p>
         </main>

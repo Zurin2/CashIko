@@ -7,6 +7,7 @@ use App\Models\StockMovement;
 use App\Support\Period;
 use App\Support\Photo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 /** Stock page (§8.6) + product CRUD + restock flow (§7.6). */
@@ -115,7 +116,7 @@ class ProductController extends Controller
             ]);
         }
 
-        return redirect()->to('/stock')->with('success', "Nadagdag sa stock: {$product->name}.");
+        return redirect()->to('/stock')->with('success', __(':name added to stock.', ['name' => $product->name]));
     }
 
     public function update(Request $request, $productId)
@@ -135,9 +136,14 @@ class ProductController extends Controller
             'expiration_date' => 'nullable|date',
         ]);
 
+        // Only branches of this business may be assigned (same guard as store).
+        $data['branch_id'] = collect([$data['branch_id'] ?? null, $product->branch_id])->first(
+            fn ($id) => $id !== null && $business->branches()->where('id', $id)->exists()
+        );
+
         $product->update($data);
 
-        return redirect()->to('/stock')->with('success', 'Na-update ang product.');
+        return redirect()->to('/stock')->with('success', __('Product updated.'));
     }
 
     public function destroy(Request $request, $productId)
@@ -145,7 +151,7 @@ class ProductController extends Controller
         $product = $request->user()->business->products()->findOrFail($productId);
         $product->delete();
 
-        return redirect()->to('/stock')->with('error', "Deleted {$product->name}.");
+        return redirect()->to('/stock')->with('success', __(':name deleted.', ['name' => $product->name]));
     }
 
     /** Section 7.6: stock up + new cost + restock movement + Restock/Supplies expense. */
@@ -163,31 +169,34 @@ class ProductController extends Controller
         [$all, $fallback] = Period::branch($business, $request->query('branch'));
         $branchId = $product->branch_id ?: $fallback;
 
-        $product->increment('quantity', $data['quantity']);
-        $product->update(['cost_price' => $data['cost_price']]);
+        // Stock increment, movement, and expense must land together or not at all.
+        DB::transaction(function () use ($business, $product, $data, $branchId) {
+            $product->increment('quantity', $data['quantity']);
+            $product->update(['cost_price' => $data['cost_price']]);
 
-        StockMovement::create([
-            'business_id' => $business->id,
-            'product_id' => $product->id,
-            'product_name' => $product->name,
-            'branch_id' => $branchId,
-            'type' => 'restock',
-            'quantity_change' => $data['quantity'],
-            'cost_price' => $data['cost_price'],
-            'supplier' => $data['supplier'] ?? null,
-            'date' => now()->toDateString(),
-        ]);
+            StockMovement::create([
+                'business_id' => $business->id,
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'branch_id' => $branchId,
+                'type' => 'restock',
+                'quantity_change' => $data['quantity'],
+                'cost_price' => $data['cost_price'],
+                'supplier' => $data['supplier'] ?? null,
+                'date' => now()->toDateString(),
+            ]);
 
-        Expense::create([
-            'business_id' => $business->id,
-            'branch_id' => $branchId,
-            'amount' => round($data['quantity'] * $data['cost_price'], 2),
-            'category' => 'Restock/Supplies',
-            'date' => now()->toDateString(),
-            'note' => "Restock {$product->name}".(isset($data['supplier']) ? " · {$data['supplier']}" : ''),
-        ]);
+            Expense::create([
+                'business_id' => $business->id,
+                'branch_id' => $branchId,
+                'amount' => round($data['quantity'] * $data['cost_price'], 2),
+                'category' => 'Restock/Supplies',
+                'date' => now()->toDateString(),
+                'note' => "Restock {$product->name}".(isset($data['supplier']) ? " · {$data['supplier']}" : ''),
+            ]);
+        });
 
-        return redirect()->to('/stock')->with('success', "Na-restock ang {$product->name} — naka-log din ang gastos.");
+        return redirect()->to('/stock')->with('success', __(':name restocked — expense logged too.', ['name' => $product->name]));
     }
 
     /** Private photo upload → path; the product stores photo_path. */

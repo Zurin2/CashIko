@@ -58,7 +58,7 @@ class ExpenseController extends Controller
 
         $business->expenses()->create($data + ['branch_id' => $fallback]);
 
-        return redirect()->to('/expenses')->with('success', sprintf('Naitala ang gastos: ₱%s', number_format($data['amount'], 2)));
+        return redirect()->to('/expenses')->with('success', __('Expense logged: ₱:amount', ['amount' => number_format($data['amount'], 2)]));
     }
 
     public function destroy(Request $request, $expenseId)
@@ -66,6 +66,6 @@ class ExpenseController extends Controller
         $expense = $request->user()->business->expenses()->findOrFail($expenseId);
         $expense->delete();
 
-        return redirect()->to('/expenses')->with('error', 'Deleted expense.');
+        return redirect()->to('/expenses')->with('error', __('Expense deleted.'));
     }
 }

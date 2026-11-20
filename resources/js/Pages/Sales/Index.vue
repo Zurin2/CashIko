@@ -8,15 +8,16 @@ import EmptyState from '@/Components/EmptyState.vue'
 import Toaster from '@/Components/Toaster.vue'
 import SaleSheet from '@/components/sales/SaleSheet.vue'
 import { peso, friendlyDate, paymentLabel, paymentColor, friendlyDateTime } from '@/lib/format'
+import { t } from '@/lib/i18n'
 
 const props = defineProps({ sales: Array, products: Array, customers: Array, filters: Object })
 const branchParam = ref(new URLSearchParams(window.location.search).get('branch') || 'all')
 
 const ranges = [
-  { key: 'today', label: 'Today' },
-  { key: 'week', label: 'This week' },
-  { key: 'month', label: 'This month' },
-  { key: 'all', label: 'All' },
+  { key: 'today', label: t('Today') },
+  { key: 'week', label: t('This week') },
+  { key: 'month', label: t('This month') },
+  { key: 'all', label: t('All') },
 ]
 const payments = ['all', 'cash', 'gcash', 'maya', 'utang']
 
@@ -40,7 +41,7 @@ const detail = ref(null)
 const voiding = ref(false)
 
 const voidSale = async () => {
-  if (!confirm('Void this sale? Stock is returned.')) return
+  if (!confirm(t('Void this sale? Stock is returned.'))) return
   voiding.value = true
   router.post(route('sales.void', detail.value.id), {}, {
     preserveState: true,
@@ -54,17 +55,17 @@ onMounted(() => {})
 </script>
 
 <template>
-  <Head title="Benta (Sales)" />
+  <Head :title="t('Sales')" />
   <AppLayout>
     <Toaster />
     <div class="md:max-w-3xl mx-auto">
       <header class="mb-4 flex items-center justify-between">
-        <h1 class="text-xl font-bold text-forest-dark">Benta (Sales)</h1>
+        <h1 class="text-xl font-bold text-forest-dark">{{ t('Sales') }}</h1>
         <button
           class="flex h-10 items-center gap-1 rounded-xl bg-forest px-4 text-sm font-semibold text-white active:scale-[0.98]"
           @click="openPos = true"
         >
-          <Plus class="h-4 w-4" /> Benta
+          <Plus class="h-4 w-4" /> {{ t('Sell') }}
         </button>
       </header>
 
@@ -81,12 +82,12 @@ onMounted(() => {})
           :value="props.filters.payment"
           @change="reload({ payment: $event.target.value === 'all' ? undefined : $event.target.value })"
         >
-          <option v-for="p in payments" :key="p" :value="p">{{ p === 'all' ? 'All payments' : paymentLabel(p) }}</option>
+          <option v-for="p in payments" :key="p" :value="p">{{ p === 'all' ? t('All payments') : paymentLabel(p) }}</option>
         </select>
       </div>
 
       <div class="mb-3 rounded-2xl border border-forest/15 bg-forest/5 px-4 py-3">
-        <div class="text-[11px] font-semibold uppercase tracking-wide text-forest-muted">Total benta</div>
+        <div class="text-[11px] font-semibold uppercase tracking-wide text-forest-muted">{{ t('Total sales') }}</div>
         <div class="text-peso text-2xl text-forest-dark">{{ peso(total) }}</div>
       </div>
 
@@ -110,9 +111,9 @@ onMounted(() => {})
           </div>
         </section>
       </div>
-      <EmptyState v-else :icon="X" title="Wala pang benta" subtitle="Tap ang + Benta upang simulan ang POS." class="mt-6">
+      <EmptyState v-else :icon="X" :title="t('No sales yet')" :subtitle="t('Tap + Sell to start the POS.')" class="mt-6">
         <template #cta>
-          <button class="rounded-xl bg-forest px-4 py-2 text-sm font-semibold text-white" @click="openPos = true">Magdagdag ng Benta</button>
+          <button class="rounded-xl bg-forest px-4 py-2 text-sm font-semibold text-white" @click="openPos = true">{{ t('Add sale') }}</button>
         </template>
       </EmptyState>
     </div>
@@ -123,7 +124,7 @@ onMounted(() => {})
         <div class="absolute inset-0 bg-black/50" />
         <div class="relative z-10 max-h-[85vh] w-full overflow-y-auto rounded-t-2xl bg-surface p-4 sm:mx-auto sm:max-w-md sm:rounded-2xl">
           <div class="mb-3 flex items-center justify-between">
-            <h2 class="font-bold text-forest-dark">Sale detail</h2>
+            <h2 class="font-bold text-forest-dark">{{ t('Sale detail') }}</h2>
             <button class="tap-target grid place-items-center" @click="detail = null"><X class="h-5 w-5" /></button>
           </div>
           <div class="rounded-xl bg-white p-4 shadow-card text-sm">
@@ -135,22 +136,22 @@ onMounted(() => {})
               </div>
             </div>
             <div class="mt-3 flex items-center justify-between border-t border-warm pt-3">
-              <span class="font-bold">Total</span>
+              <span class="font-bold">{{ t('Total') }}</span>
               <span class="text-peso text-lg">{{ peso(detail.total) }}</span>
             </div>
-            <p v-if="detail.customer_name" class="mt-1 text-xs text-forest-muted">Customer: {{ detail.customer_name }}</p>
+            <p v-if="detail.customer_name" class="mt-1 text-xs text-forest-muted">{{ t('Customer: {name}', { name: detail.customer_name }) }}</p>
             <button
               class="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-50 font-semibold text-red-600 ring-1 ring-red-200 transition hover:bg-red-100 active:scale-[0.98]"
               :disabled="voiding"
               @click="voidSale"
             >
-              <Trash2 class="h-4 w-4" /> Void sale
+              <Trash2 class="h-4 w-4" /> {{ t('Void sale') }}
             </button>
           </div>
         </div>
       </div>
     </Teleport>
 
-    <SaleSheet v-model:open="openPos" :products="props.products" :customers="props.customers" />
+    <SaleSheet v-model:open="openPos" :products="props.products" :customers="props.customers" :methods="props.methods || []" />
   </AppLayout>
 </template>

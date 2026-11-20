@@ -7,10 +7,10 @@ use App\Support\Period;
 use Illuminate\Support\Facades\Http;
 
 /**
- * "Tanong kay CashIko" (§11.1). v1 has an optional external LLM
- * (ASSISTANT_URL + ASSISTANT_KEY, OpenAI-compatible /chat/completions);
- * without it a deterministic Taglish summarizer answers from the same
- * context snapshot, so the feature always works.
+ * "Tanong kay CashIko" (§11.1). Defaults to Google Gemini when GEMINI_API_KEY
+ * is set (sharing the same key as Riff Note AI). Can also use generic OpenAI-compatible
+ * endpoints (ASSISTANT_URL + ASSISTANT_KEY); without any key, a deterministic
+ * Taglish summarizer answers from the same context snapshot.
  */
 class AssistantService
 {
@@ -83,6 +83,13 @@ class AssistantService
     {
         $context = $this->buildContext($business);
 
+        if (config('services.gemini.key')) {
+            $gemini = $this->askGemini($context, $question);
+            if ($gemini !== null) {
+                return $gemini;
+            }
+        }
+
         if (config('services.assistant.url') && config('services.assistant.key')) {
             $llm = $this->askExternalLlm($context, $question);
             if ($llm !== null) {
@@ -91,6 +98,58 @@ class AssistantService
         }
 
         return $this->fallbackAnswer($context, $question);
+    }
+
+    private function askGemini(array $context, string $question): ?string
+    {
+        $apiKey = config('services.gemini.key');
+        if (! $apiKey) {
+            return null;
+        }
+
+        $models = array_unique(array_filter([
+            config('services.gemini.model'),
+            'gemini-1.5-flash',
+            'gemini-2.0-flash',
+        ]));
+
+        foreach ($models as $model) {
+            try {
+                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
+
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'x-goog-api-key' => $apiKey,
+                ])
+                    ->timeout(30)
+                    ->post($url, [
+                        'systemInstruction' => [
+                            'parts' => [
+                                ['text' => $this->systemPrompt()],
+                            ],
+                        ],
+                        'contents' => [
+                            [
+                                'role' => 'user',
+                                'parts' => [
+                                    ['text' => "Business data JSON:\n".json_encode($context)."\n\nQuestion: {$question}"],
+                                ],
+                            ],
+                        ],
+                    ]);
+
+                if ($response->successful()) {
+                    $content = $response->json('candidates.0.content.parts.0.text');
+                    if ($content) {
+                        return trim($content);
+                    }
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return null;
     }
 
     private function askExternalLlm(array $context, string $question): ?string

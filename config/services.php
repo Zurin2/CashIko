@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
+    ],
+
+    'assistant' => [
+        'url' => env('ASSISTANT_URL'),
+        'key' => env('ASSISTANT_KEY'),
+        'model' => env('ASSISTANT_MODEL', 'gpt-4o-mini'),
+    ],
+
 ];

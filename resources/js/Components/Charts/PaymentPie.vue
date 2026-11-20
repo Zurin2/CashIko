@@ -1,6 +1,8 @@
 <script setup>
 /** Minimal SVG donut/pie for payment split (§8.9 Sales by Payment). */
 import { computed } from 'vue'
+import { t } from '@/lib/i18n'
+import { paymentLabel } from '@/lib/format'
 
 const props = defineProps({
   data: { type: Object, required: true }, // {cash: 123, gcash: ...}
@@ -41,8 +43,7 @@ const total = computed(() => Object.values(props.data).reduce((a, b) => a + b, 0
 
 const fmt = (n) => Number(n).toLocaleString('en-PH', { style: 'currency', currency: 'PHP' })
 
-const labelOf = (k) =>
-  ({ cash: 'Cash', gcash: 'GCash', maya: 'Maya', utang: 'Utang' }[k] || k)
+const labelOf = (k) => paymentLabel(k)
 </script>
 
 <template>
@@ -60,7 +61,7 @@ const labelOf = (k) =>
         </span>
         <span class="tabular text-forest-muted">{{ fmt(a.value) }}</span>
       </div>
-      <div v-if="!entries.length" class="text-forest-muted">Wala pang benta sa panahong ito.</div>
+      <div v-if="!entries.length" class="text-forest-muted">{{ t('No sales in this period yet.') }}</div>
       <div v-else class="border-t border-warm pt-1.5 font-bold text-forest-dark">{{ fmt(total) }} total</div>
     </div>
   </div>

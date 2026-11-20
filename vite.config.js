@@ -17,4 +17,11 @@ export default defineConfig({
             },
         }),
     ],
+    build: {
+        rollupOptions: {
+            treeshake: {
+                moduleSideEffects: (id) => id.includes('@vueuse/motion') ? true : undefined,
+            },
+        },
+    },
 });
