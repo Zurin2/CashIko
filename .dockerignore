@@ -1,0 +1,26 @@
+.git
+.github
+.idea
+.vscode
+
+# Local state never enters the image.
+.env
+.env.*
+!.env.production.example
+vendor
+node_modules
+public/build
+
+# Local database, logs and caches.
+database/*.sqlite
+storage/app/*
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Tests and tooling.
+tests
+phpunit.xml
+*.md
+!README.md

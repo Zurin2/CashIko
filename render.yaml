@@ -1,0 +1,110 @@
+# Render Blueprint — one click creates the web service from the Dockerfile.
+# Dashboard → New → Blueprint → point at this repo.
+#
+# Secrets use `sync: false`, which means Render prompts for them on first
+# deploy instead of storing them in this file. Fill them from
+# .env.production.example.
+
+services:
+  - type: web
+    name: cashiko
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Free: $0, 512 MB, spins down after 15 idle minutes (~1 min cold start),
+    # no worker, no cron, no persistent disk. Fine for staging and for proving
+    # the pipeline. Flip to `starter` ($7) before real users.
+    plan: free
+    region: singapore
+    healthCheckPath: /up
+    # Pre-deploy commands are paid-plan only. On `free`, run migrations from
+    # your machine (see DEPLOY.md). Uncomment together with `plan: starter`.
+    # preDeployCommand: php artisan migrate --force
+    autoDeploy: true
+    envVars:
+      - key: APP_NAME
+        value: CashIko
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: APP_LOCALE
+        value: en
+      - key: APP_FALLBACK_LOCALE
+        value: en
+
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: PORT
+        value: "8080"
+
+      # Supabase Postgres — use the session pooler URL (port 5432).
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+
+      # Supabase Storage, S3 protocol. Private bucket.
+      - key: PRIVATE_DISK_DRIVER
+        value: s3
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        value: ap-southeast-1
+      - key: AWS_BUCKET
+        value: cashiko-private
+      - key: AWS_ENDPOINT
+        sync: false
+      - key: AWS_USE_PATH_STYLE_ENDPOINT
+        value: "true"
+
+      # Shared across instances and redeploys; never use `file` on Render.
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      # The app dispatches no jobs. Switch to `database` and uncomment the
+      # worker below before adding any.
+      - key: QUEUE_CONNECTION
+        value: sync
+
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+
+# Uncomment when the app starts dispatching jobs (reminders, trial expiry).
+# A worker is a separate paid instance (~$7/mo).
+#
+#  - type: worker
+#    name: cashiko-queue
+#    runtime: docker
+#    dockerfilePath: ./Dockerfile
+#    plan: starter
+#    region: singapore
+#    dockerCommand: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+#    envVars:
+#      - fromService:
+#          type: web
+#          name: cashiko
+#          envVarKey: DB_URL
+#
+# Uncomment when the scheduler has tasks worth running (`schedule:run` every
+# minute). Vercel-style cold starts do not apply here.
+#
+#  - type: cron
+#    name: cashiko-scheduler
+#    runtime: docker
+#    dockerfilePath: ./Dockerfile
+#    schedule: "* * * * *"
+#    region: singapore
+#    dockerCommand: php artisan schedule:run

@@ -30,7 +30,24 @@ return [
 
     'disks' => [
 
-        'private' => [
+        /*
+         | Product photos and payment QR codes. Locally this is a folder; on a
+         | serverless host the filesystem is read-only and per-instance, so the
+         | same disk is backed by object storage (Supabase Storage speaks the
+         | S3 protocol). Controllers keep calling Storage::disk('private').
+         */
+        'private' => env('PRIVATE_DISK_DRIVER', 'local') === 's3' ? [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'ap-southeast-1'),
+            'bucket' => env('AWS_BUCKET'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ] : [
             'driver' => 'local',
             'root' => storage_path('app/private'),
             'serve' => false, // served via signed route photo.view (PhotoController)
