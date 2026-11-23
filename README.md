@@ -4,6 +4,19 @@ CashIko is a web application built with **Laravel** and **Vue 3**.
 
 ---
 
+## Live Deployment
+
+| Environment | URL |
+| --- | --- |
+| Production app | https://cashiko.onrender.com |
+| Marketing site | https://cashiko-website.vercel.app |
+
+Production runs as a Docker web service on Render (Singapore) with Supabase Postgres and a private Supabase Storage bucket. See [DEPLOY.md](DEPLOY.md) for the setup runbook, environment variables, migrations, and free-tier limits.
+
+Everything below this section is for **local development** only.
+
+---
+
 ## What You Need
 
 Before starting, make sure you have these installed on your computer:
