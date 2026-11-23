@@ -6,7 +6,7 @@ import { Plus, X, Trash2 } from 'lucide-vue-next'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import EmptyState from '@/Components/EmptyState.vue'
 import Toaster from '@/Components/Toaster.vue'
-import SaleSheet from '@/components/sales/SaleSheet.vue'
+import SaleSheet from '@/Components/sales/SaleSheet.vue'
 import { peso, friendlyDate, paymentLabel, paymentColor, friendlyDateTime } from '@/lib/format'
 import { t } from '@/lib/i18n'
 
