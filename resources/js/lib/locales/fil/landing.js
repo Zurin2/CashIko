@@ -11,6 +11,16 @@ export default {
   'FAQ': 'FAQ',
   'Start free trial': 'Simulan ang libreng trial',
   'Language': 'Wika',
+  'Open menu': 'Buksan ang menu',
+  'Close menu': 'Isara ang menu',
+
+  // Rotating claims
+  'Sales in one tap': 'Benta sa isang tap',
+  'Debts with due dates': 'Utang na may due date',
+  'Stock that never runs short': 'Stock na hindi nauubusan',
+  'Profit — real, every day': 'Kita — totoo, araw-araw',
+  'Every peso of expense logged': 'Bawat pisong gastos, naitala',
+  '3-tap recording': '3-tap na pag-record',
 
   // Hero
   'For sari-sari stores, karinderyas and small shops': 'Para sa sari-sari store, karinderya at maliliit na tindahan',

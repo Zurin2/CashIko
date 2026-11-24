@@ -12,11 +12,11 @@
  * Motion: @vueuse/motion (spring reveals) + CountUp + pure-CSS keyframes, all
  * disabled under prefers-reduced-motion.
  */
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import {
-  ArrowRight, Boxes, Check, ChevronDown, HandCoins, ReceiptText,
-  ShoppingBag, TrendingUp,
+  ArrowRight, Boxes, Check, ChevronDown, HandCoins, Menu, ReceiptText,
+  ShoppingBag, TrendingUp, X,
 } from 'lucide-vue-next'
 import CountUp from '@/Components/CountUp.vue'
 import { isFilipino, setLocale, t } from '@/lib/i18n'
@@ -153,11 +153,11 @@ const faqs = [
   },
 ]
 
-/* Illustrative 7-day bars for the hero preview. */
+/* Illustrative 7-day bars for the hero preview (values sum to the ₱2,415 shown). */
 const bars = [
-  { h: 42, label: 'M' }, { h: 58, label: 'T' }, { h: 35, label: 'W' },
-  { h: 70, label: 'T' }, { h: 52, label: 'F' }, { h: 88, label: 'S' },
-  { h: 64, label: 'S' },
+  { h: 42, label: 'M', v: 240 }, { h: 58, label: 'T', v: 310 }, { h: 35, label: 'W', v: 190 },
+  { h: 70, label: 'T', v: 420 }, { h: 52, label: 'F', v: 280 }, { h: 88, label: 'S', v: 560 },
+  { h: 64, label: 'S', v: 415 },
 ]
 
 const navLinks = [
@@ -166,20 +166,78 @@ const navLinks = [
   { href: '#pricing', label: 'Pricing' },
   { href: '#faq', label: 'FAQ' },
 ]
+
+/* Rotating words carousel — the claims that scroll past under the hero. */
+const ticker = [
+  'Sales in one tap',
+  'Debts with due dates',
+  'Stock that never runs short',
+  'Profit — real, every day',
+  'Every peso of expense logged',
+  '3-tap recording',
+]
+
+/* ------------------------------------------------------------ interaction */
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+const menuOpen = ref(false)
+const closeMenu = () => { menuOpen.value = false }
+
+const progress = ref(0)
+const onScroll = () => {
+  const doc = document.documentElement
+  const max = doc.scrollHeight - doc.clientHeight
+  progress.value = max > 0 ? Math.min(100, Math.max(0, (doc.scrollTop / max) * 100)) : 0
+}
+
+/* Pointer-driven tilt on the hero preview (fine pointers only). */
+const tilt = ref({ x: 0, y: 0 })
+const onTilt = (event) => {
+  if (prefersReducedMotion() || window.matchMedia('(pointer: coarse)').matches) return
+  const rect = event.currentTarget.getBoundingClientRect()
+  const px = (event.clientX - rect.left) / rect.width - 0.5
+  const py = (event.clientY - rect.top) / rect.height - 0.5
+  tilt.value = { x: px * 7, y: py * -7 }
+}
+const resetTilt = () => { tilt.value = { x: 0, y: 0 } }
+
+const onKeydown = (event) => {
+  if (event.key === 'Escape') closeMenu()
+}
+
+onMounted(() => {
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('keydown', onKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
   <Head title="Know what you really earn" />
 
   <div class="min-h-screen overflow-x-hidden bg-surface">
+    <!-- ------------------------------------------------------ scroll progress -->
+    <div class="fixed inset-x-0 top-0 z-50 h-0.5 bg-transparent" aria-hidden="true">
+      <div
+        class="h-full origin-left bg-gradient-to-r from-forest via-mango to-forest transition-[width] duration-150 ease-out"
+        :style="{ width: progress + '%' }"
+      />
+    </div>
+
     <!-- ------------------------------------------------------------- nav -->
     <nav class="sticky top-0 z-40 border-b border-warm bg-white/90 backdrop-blur">
       <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-        <a href="#top" class="flex items-center gap-2">
+        <a href="#top" class="flex items-center gap-2" @click="closeMenu">
           <img src="/images/cashiko-icon.svg" alt="" class="h-9 w-auto" draggable="false" />
           <span class="text-lg font-extrabold tracking-tight text-forest-dark">CashIko</span>
         </a>
 
+        <!-- desktop nav -->
         <div class="hidden items-center gap-1 md:flex">
           <a
             v-for="l in navLinks"
@@ -189,7 +247,8 @@ const navLinks = [
           >{{ t(l.label) }}</a>
         </div>
 
-        <div class="flex items-center gap-2">
+        <!-- desktop language + login -->
+        <div class="hidden items-center gap-2 md:flex">
           <div class="flex items-center rounded-full border border-warm bg-white p-0.5" role="group" :aria-label="t('Language')">
             <button
               v-for="code in ['en', 'fil']"
@@ -206,7 +265,73 @@ const navLinks = [
             class="tap-target flex items-center rounded-xl px-3 text-sm font-semibold text-forest transition-colors duration-150 hover:bg-cream"
           >{{ t('Log in') }}</Link>
         </div>
+
+        <!-- mobile burger -->
+        <button
+          type="button"
+          class="tap-target grid place-items-center rounded-xl border border-warm bg-white text-forest-dark transition-colors duration-150 hover:border-forest/40 hover:bg-cream/60 md:hidden"
+          :aria-expanded="menuOpen"
+          aria-controls="mobile-menu"
+          :aria-label="menuOpen ? t('Close menu') : t('Open menu')"
+          @click="menuOpen = !menuOpen"
+        >
+          <X v-if="menuOpen" class="h-5 w-5" />
+          <Menu v-else class="h-5 w-5" />
+        </button>
       </div>
+
+      <!-- mobile panel -->
+      <transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="-translate-y-2 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="-translate-y-2 opacity-0"
+      >
+        <div
+          v-if="menuOpen"
+          id="mobile-menu"
+          class="border-t border-warm bg-white px-4 pb-5 pt-3 md:hidden"
+        >
+          <a
+            v-for="l in navLinks"
+            :key="l.href"
+            :href="l.href"
+            class="tap-target flex items-center rounded-xl px-3 text-base font-semibold text-forest-dark transition-colors duration-150 hover:bg-cream/70"
+            @click="closeMenu"
+          >{{ t(l.label) }}</a>
+
+          <div class="mt-3 flex items-center justify-between gap-3 border-t border-warm pt-3">
+            <span class="text-xs font-bold uppercase tracking-widest text-forest-muted">{{ t('Language') }}</span>
+            <div class="flex items-center rounded-full border border-warm bg-white p-0.5" role="group" :aria-label="t('Language')">
+              <button
+                v-for="code in ['en', 'fil']"
+                :key="code"
+                type="button"
+                :aria-pressed="lang === code"
+                class="tap-target rounded-full px-3 text-[11px] font-bold uppercase tracking-wide transition-colors duration-150"
+                :class="lang === code ? 'bg-forest text-white' : 'text-forest-muted hover:text-forest'"
+                @click="setLang(code)"
+              >{{ code === 'en' ? 'EN' : 'FIL' }}</button>
+            </div>
+          </div>
+
+          <div class="mt-3 flex flex-col gap-2">
+            <Link
+              :href="route('login')"
+              class="tap-target flex items-center justify-center rounded-xl border border-warm bg-white px-4 text-sm font-semibold text-forest-dark transition-colors duration-150 hover:border-forest/40 hover:bg-cream/60"
+              @click="closeMenu"
+            >{{ t('Log in') }}</Link>
+            <Link
+              v-if="canRegister"
+              :href="route('register')"
+              class="tap-target flex items-center justify-center rounded-xl bg-gradient-to-b from-mango to-[#d97706] px-4 text-sm font-semibold text-white ring-1 ring-inset ring-white/25 transition-colors duration-150 hover:brightness-105 active:scale-[0.99]"
+              @click="closeMenu"
+            >{{ t('Start free trial') }}</Link>
+          </div>
+        </div>
+      </transition>
     </nav>
 
     <!-- ------------------------------------------------------------ hero -->
@@ -237,13 +362,13 @@ const navLinks = [
             <Link
               v-if="canRegister"
               :href="route('register')"
-              class="flex h-12 items-center rounded-xl bg-gradient-to-b from-mango to-[#d97706] px-6 font-semibold text-white shadow-[0_12px_30px_-12px_hsl(26_88%_46%/0.75)] ring-1 ring-inset ring-white/25 transition-colors duration-150 hover:brightness-105 active:scale-[0.98]"
+              class="flex h-12 items-center rounded-xl bg-gradient-to-b from-mango to-[#d97706] px-6 font-semibold text-white shadow-[0_12px_30px_-12px_hsl(26_88%_46%/0.75)] ring-1 ring-inset ring-white/25 transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 active:scale-[0.98]"
             >
               {{ t('Start 14-day free trial') }} <ArrowRight class="ml-2 h-4 w-4" />
             </Link>
             <a
               href="#how"
-              class="flex h-12 items-center rounded-xl border border-warm bg-white px-5 font-semibold text-forest-dark transition-colors duration-150 hover:border-forest/40 hover:bg-cream/60 active:scale-[0.98]"
+              class="flex h-12 items-center rounded-xl border border-warm bg-white px-5 font-semibold text-forest-dark transition duration-200 ease-out hover:-translate-y-0.5 hover:border-forest/40 hover:bg-cream/60 active:translate-y-0 active:scale-[0.98]"
             >{{ t('See how it works') }}</a>
           </div>
 
@@ -251,17 +376,23 @@ const navLinks = [
         </div>
 
         <!-- illustrative product preview -->
-        <div class="relative">
+        <div class="relative [perspective:1200px]">
           <div
             class="pointer-events-none absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-forest/10 via-transparent to-mango/15 blur-2xl"
             aria-hidden="true"
           />
           <div
-            v-motion
-            :initial="{ opacity: 0, y: 28 }"
-            :enter="{ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 90, damping: 18, delay: 420 } }"
-            class="relative overflow-hidden rounded-3xl border border-warm bg-white shadow-cardlg"
+            class="transition-transform duration-200 ease-out will-change-transform"
+            :style="{ transform: `rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)` }"
+            @pointermove="onTilt"
+            @pointerleave="resetTilt"
           >
+            <div
+              v-motion
+              :initial="{ opacity: 0, y: 28 }"
+              :enter="{ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 90, damping: 18, delay: 420 } }"
+              class="relative overflow-hidden rounded-3xl border border-warm bg-white shadow-cardlg"
+            >
             <div class="flex items-center justify-between border-b border-warm px-5 py-3">
               <span class="text-sm font-bold text-forest-dark">Home</span>
               <span class="text-xs font-semibold text-forest-muted">Tuesday · 6:12 PM</span>
@@ -273,9 +404,16 @@ const navLinks = [
               </div>
 
               <div class="mt-4 flex h-24 items-end gap-2">
-                <div v-for="(b, i) in bars" :key="i" class="flex flex-1 flex-col items-center gap-1">
+                <div
+                  v-for="(b, i) in bars"
+                  :key="i"
+                  class="group relative flex flex-1 flex-col items-center gap-1"
+                >
+                  <span
+                    class="pointer-events-none absolute -top-7 whitespace-nowrap rounded-md bg-forest-dark px-1.5 py-0.5 text-[10px] font-bold text-white opacity-0 shadow-card transition-opacity duration-150 group-hover:opacity-100"
+                  >₱{{ b.v }}</span>
                   <div
-                    class="anim-growbar w-full origin-bottom rounded-t-md"
+                    class="anim-growbar w-full origin-bottom rounded-t-md transition-[filter] duration-150 group-hover:brightness-110"
                     :class="i === 5 ? 'bg-mango' : 'bg-forest/80'"
                     :style="{ height: b.h + 'px', animationDelay: 0.5 + i * 0.09 + 's' }"
                   />
@@ -295,6 +433,7 @@ const navLinks = [
                 <span class="chip border-warm bg-cream text-forest-dark">Maya</span>
               </div>
             </div>
+            </div>
           </div>
 
           <div class="anim-float pointer-events-none absolute -right-3 -top-5 hidden h-11 w-11 place-items-center rounded-2xl border border-warm bg-white shadow-card md:grid" style="animation-delay: 0.8s">
@@ -307,8 +446,28 @@ const navLinks = [
       </div>
     </header>
 
+    <!-- ------------------------------------------------- rotating claims -->
+    <section
+      class="overflow-hidden border-y border-warm bg-forest-dark py-3"
+      aria-label="What CashIko records"
+    >
+      <div class="anim-marquee flex w-max items-center hover:[animation-play-state:paused]">
+        <template v-for="pass in 2" :key="pass">
+          <span
+            v-for="(word, i) in ticker"
+            :key="`${pass}-${i}`"
+            class="mr-8 flex items-center gap-8 whitespace-nowrap text-sm font-bold uppercase tracking-widest text-white/85"
+            :aria-hidden="pass === 2 ? 'true' : undefined"
+          >
+            {{ t(word) }}
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-mango" aria-hidden="true" />
+          </span>
+        </template>
+      </div>
+    </section>
+
     <!-- --------------------------------------------------- facts strip -->
-    <section class="border-y border-warm bg-gradient-to-r from-cream/50 via-white to-cream/50" aria-label="CashIko at a glance">
+    <section class="border-b border-warm bg-gradient-to-r from-cream/50 via-white to-cream/50" aria-label="CashIko at a glance">
       <dl class="mx-auto grid max-w-5xl grid-cols-2 divide-warm px-4 sm:grid-cols-4 sm:divide-x">
         <div v-for="(f, i) in facts" :key="f.value" class="px-2 py-5 text-center sm:px-4" :class="i < 2 ? 'border-b border-warm sm:border-b-0' : ''">
           <dt class="text-xl font-extrabold tracking-tight text-forest-dark">{{ t(f.value) }}</dt>
@@ -469,10 +628,10 @@ const navLinks = [
         <div
           v-for="p in plans"
           :key="p.id"
-          class="flex flex-col rounded-2xl border p-6"
+          class="flex flex-col rounded-2xl border p-6 transition duration-200 ease-out hover:-translate-y-1"
           :class="p.featured
-            ? 'border-forest/30 bg-gradient-to-b from-forest-deep to-forest-dark text-white shadow-cardlg'
-            : 'border-warm bg-white shadow-card'"
+            ? 'border-forest/30 bg-gradient-to-b from-forest-deep to-forest-dark text-white shadow-cardlg hover:shadow-[0_28px_60px_-24px_hsl(150_18%_10%/0.65)]'
+            : 'border-warm bg-white shadow-card hover:border-forest/30 hover:shadow-cardlg'"
         >
           <div class="flex items-baseline justify-between">
             <h3 class="text-lg font-extrabold tracking-tight" :class="p.featured ? 'text-white' : 'text-forest-dark'">{{ t(p.name) }}</h3>
@@ -497,7 +656,7 @@ const navLinks = [
           <Link
             v-if="canRegister"
             :href="route('register')"
-            class="mt-6 flex h-12 items-center justify-center rounded-xl font-semibold transition-colors duration-150 active:scale-[0.98]"
+            class="mt-6 flex h-12 items-center justify-center rounded-xl font-semibold transition duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
             :class="p.featured
               ? 'bg-gradient-to-b from-mango to-[#d97706] text-white ring-1 ring-inset ring-white/25 hover:brightness-105'
               : 'border border-forest/25 bg-forest/5 text-forest hover:bg-forest/10'"
@@ -555,11 +714,11 @@ const navLinks = [
           <Link
             v-if="canRegister"
             :href="route('register')"
-            class="flex h-12 items-center rounded-xl bg-gradient-to-b from-mango to-[#d97706] px-6 font-semibold text-white shadow-[0_12px_30px_-10px_hsl(26_88%_46%/0.7)] ring-1 ring-inset ring-white/25 transition-colors duration-150 hover:brightness-105 active:scale-[0.98]"
+            class="flex h-12 items-center rounded-xl bg-gradient-to-b from-mango to-[#d97706] px-6 font-semibold text-white shadow-[0_12px_30px_-10px_hsl(26_88%_46%/0.7)] ring-1 ring-inset ring-white/25 transition duration-200 ease-out hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0 active:scale-[0.98]"
           >{{ t('Start free trial') }}</Link>
           <a
             href="#pricing"
-            class="flex h-12 items-center rounded-xl border border-white/25 px-5 font-semibold text-white transition-colors duration-150 hover:bg-white/10 active:scale-[0.98]"
+            class="flex h-12 items-center rounded-xl border border-white/25 px-5 font-semibold text-white transition duration-200 ease-out hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0 active:scale-[0.98]"
           >{{ t('See pricing') }}</a>
         </div>
       </div>
@@ -597,6 +756,10 @@ const navLinks = [
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.6); opacity: 0.4; }
 }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
 
 .anim-float { animation: float 5s ease-in-out infinite; }
 .anim-growbar {
@@ -604,14 +767,17 @@ const navLinks = [
   transform-origin: bottom;
 }
 .anim-pulse { animation: pulse-dot 1.8s ease-in-out infinite; }
+.anim-marquee { animation: marquee 32s linear infinite; }
 
 summary::-webkit-details-marker { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .anim-float,
   .anim-growbar,
-  .anim-pulse {
+  .anim-pulse,
+  .anim-marquee {
     animation: none !important;
   }
+  .anim-marquee { transform: none !important; }
 }
 </style>
