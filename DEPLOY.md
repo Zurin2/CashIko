@@ -82,6 +82,30 @@ Without Docker locally, the Render build log is the verification: a failed
 Composer install, Vite build or `package:discover` shows up there before the
 service goes live.
 
+## Recovering a locked account
+
+Render defines no `MAIL_*` variables, so `config/mail.php` falls back to
+`MAIL_MAILER=log`: `/forgot-password` accepts the request and writes the reset
+mail into the container log, where nobody will read it. Until SMTP is wired up
+(Resend or Brevo free tier), unlock an account from the shell:
+
+1. Render dashboard → the `cashiko` service → **Shell**.
+2. Run:
+
+   ```bash
+   php artisan cashiko:reset-password you@example.com
+   ```
+
+3. Type the new password twice at the hidden prompts (8 characters minimum).
+   The command hashes it, rotates `remember_token` so other devices are signed
+   out, and prints the account it updated.
+
+The command refuses unknown addresses, short passwords and mismatched
+confirmations, and reads the password from a prompt rather than an argument, so
+it never lands in shell history or the Render event log. Existing passwords are
+bcrypt hashes in `users.password` — one-way, so they can be replaced but never
+read back.
+
 ## Before real traffic
 
 - **PHP 8.3 leaves security support in December 2026.** Bump the base image to
