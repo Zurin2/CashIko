@@ -106,6 +106,14 @@ const plans = [
   },
 ]
 
+/* The founding team, exactly as the marketing site states them: name + role,
+   no photos, no bios, no invented credentials. */
+const founders = [
+  { name: 'Xyrille Nuñez', initials: 'XN' },
+  { name: 'Jose Miguel Esperat', initials: 'JE' },
+  { name: 'Emmanuel Javier', initials: 'EJ' },
+]
+
 const faqs = [
   {
     q: 'What exactly is CashIko?',
@@ -669,13 +677,34 @@ onUnmounted(() => {
 
     <!-- ------------------------------------------------------- founders -->
     <section class="border-y border-warm bg-cream/30 py-14">
-      <div class="mx-auto max-w-3xl px-4">
-        <blockquote class="border-l-2 border-mango pl-5">
-          <p class="text-lg font-semibold leading-relaxed text-forest-dark sm:text-xl">
-            {{ t('“Every store already knows how to keep records. They just deserve software that does the maths without asking them to become accountants.”') }}
+      <div class="mx-auto grid max-w-5xl gap-10 px-4 md:grid-cols-[1.05fr_0.95fr] md:gap-14">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-forest">{{ t('The team') }}</p>
+          <h2 class="mt-2 text-2xl font-extrabold leading-snug tracking-tight text-forest-dark">{{ t('Three co-founders, one product.') }}</h2>
+          <p class="mt-2 max-w-md text-sm leading-relaxed text-forest-muted">
+            {{ t('CashIko is built end to end by the three of us — the product you use, the reports you read and the support you get.') }}
           </p>
-          <footer class="mt-3 text-sm font-bold uppercase tracking-widest text-forest-muted">{{ t('The CashIko team') }}</footer>
-        </blockquote>
+
+          <blockquote class="mt-6 border-l-2 border-mango pl-5">
+            <p class="text-base font-semibold leading-relaxed text-forest-dark sm:text-lg">
+              {{ t('“Every store already knows how to keep records. They just deserve software that does the maths without asking them to become accountants.”') }}
+            </p>
+            <footer class="mt-2 text-xs font-bold uppercase tracking-widest text-forest-muted">{{ t('The CashIko team') }}</footer>
+          </blockquote>
+        </div>
+
+        <ul class="divide-y divide-warm border-y border-warm md:self-center">
+          <li v-for="person in founders" :key="person.name" class="flex items-center gap-4 py-4">
+            <span
+              class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-sm font-extrabold text-forest ring-1 ring-warm"
+              aria-hidden="true"
+            >{{ person.initials }}</span>
+            <div>
+              <p class="text-sm font-bold text-forest-dark">{{ person.name }}</p>
+              <p class="text-[11px] font-semibold uppercase tracking-widest text-forest-muted">{{ t('Co-founder') }}</p>
+            </div>
+          </li>
+        </ul>
       </div>
     </section>
 

@@ -90,6 +90,10 @@ export default {
   '14 days free · no credit card · switch or cancel from Settings': '14 araw na libre · walang credit card · palitan o kanselahin sa Settings',
 
   // Founders
+  'The team': 'Ang team',
+  'Three co-founders, one product.': 'Tatlong co-founder, isang produkto.',
+  'CashIko is built end to end by the three of us — the product you use, the reports you read and the support you get.': 'Binubuo namin ng tatlo ang CashIko mula simula hanggang dulo — ang produktong ginagamit mo, ang mga report na binabasa mo, at ang suportang natatanggap mo.',
+  'Co-founder': 'Co-founder',
   '“Every store already knows how to keep records. They just deserve software that does the maths without asking them to become accountants.”': '“Alam na ng bawat tindahan kung paano magtala. Ang kailangan lang nila ay software na gagawa ng math para sa kanila — hindi para maging accountant sila.”',
   'The CashIko team': 'Ang team ng CashIko',
 
